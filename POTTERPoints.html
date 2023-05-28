@@ -12,9 +12,9 @@
       }
       .chartMenu {
         width: 100vw;
-        height: 40px;
+        height: 0px;
         background: #1A1A1A;
-        color: rgba(54, 162, 235, 1);
+        color: rgb(136,120,195);
       }
       .chartMenu p {
         padding: 10px;
@@ -29,18 +29,35 @@
         justify-content: center;
       }
       .chartBox {
-        width: 500px;
+        width: 450px;
         padding: 20px;
         border-radius: 20px;
-        border: solid 3px rgba(54, 162, 235, 1);
+        border: solid 2px rgb(136,120,195);
         background: white;
       }
       .chartjs-table, th, td {
+        width: 450px;
+        margin-top: 20px;
         border-collapse: collapse;
         border: 1px solid black;
         padding: 10px; 
         font-family: "Times New Roman", Times, serif;
       }
+
+      tbody tr:nth-child(2n-1) {
+        background-color: rgb(245, 245, 245);
+        transition: all .125s ease-in-out;
+      }
+
+      tbody tr:hover {
+        background-color: rgba(50,98,149,.3);
+      }
+
+      .chartjs-table thead tr:first-child {
+        background: linear-gradient(to bottom, rgb(136,120,195), rgb(178, 167, 216));
+        color: white;
+      }
+
       .chartjs-thead {
         font-weight: bold;
         font-family: "Times New Roman", Times, serif;
@@ -60,40 +77,97 @@
     </div>
     <h1>POTTER Point Rankings and Statistics</h1>
     <div class="chartCard">
-      <div class="chartBox">
+      <div class="chartBox" style="position: relative; bottom: 50px; right: 30px;">
         <canvas id="FAMRankingChart"></canvas>
-        <button onclick="getData()">Check</button>
+      </div>
+      <div class="chartBox" style="position: relative; bottom: 160px; left: 30px;">
+        <canvas id="FAMRanksChart"></canvas>
       </div>
     </div>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/chart.js/dist/chart.umd.min.js"></script>
+
     <script>
 
     drawChart();
 
     async function drawChart() {
+
         // setup 
         const FAMRankingDataPoints = await getData();
-        const FAMRankingdata = {
-            labels: FAMRankingDataPoints.labels,
+        const FAMRankingData = {
+            labels: FAMRankingDataPoints.FAMs,
                 datasets: [{
+                label: 'FAMs',
+                data: FAMRankingDataPoints.ranks,
+                backgroundColor: FAMRankingDataPoints.FAMcolors,
+                borderWidth: 1
+                }, {
                 label: 'POTTER Points',
-                data: FAMRankingDataPoints.FAMPoints,
-                backgroundColor: [
-                    'rgb(83,83,83)',
-                    'rgb(234,86,19)',
-                    'rgb(212,213,201)',
-                    'rgb(244, 172, 186)'
-                ],
+                data: FAMRankingDataPoints.FAMpoints,
+                backgroundColor: FAMRankingDataPoints.FAMcolors,
                 borderWidth: 1
                 }]
-        };
+        }; 
 
+        const ctx = document.getElementById('FAMRankingChart').getContext('2d');
+
+        let delayed;
+        
+        // Create the gradient colors
+        const gradientColors = FAMRankingDataPoints.FAMcolors.map((color) => {
+          const alphaColor = color.replace('rgb', 'rgba').replace(')', ', 0.55)'); // Add alpha value of 0.5 (adjust as needed)
+          const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+          gradient.addColorStop(1, alphaColor);
+          gradient.addColorStop(0, color);
+          return gradient;
+        });
         // config 
         const FAMRankingconfig = {
-        type: 'pie',
-        data: FAMRankingdata,
-        options: {
-        }
+          type: 'bar',
+          data: {
+            labels: FAMRankingDataPoints.FAMs,
+            datasets: [{
+              label: 'POTTER Points',
+              data: FAMRankingDataPoints.FAMpoints,
+              backgroundColor: gradientColors
+          }]
+          },
+          options: {
+            plugins: {
+              title: {
+                display: true,
+                text: 'Current P.O.T.T.E.R. Standing (March 2023)',
+              }
+            },
+            animation: {
+              onComplete: () => {
+                delayed = true;
+              },
+              delay: (context) => {
+                let delay = 0;
+                if (context.type === "data" && context.mode === "default" && !delayed) {
+                  delay = context.dataIndex * 300 + context.datasetIndex * 100;
+                }
+                return delay;
+              },
+            },
+            scales: {
+              y: {
+                min: function(context) {
+                  // Calculate the minimum value dynamically
+                  var data = context.chart.data.datasets[0].data;
+                  var minValue = Math.min(...data) - 5; // Adjust the offset as needed
+
+                  var customMin = minValue * 0.95;
+
+                  customMin = Math.round(customMin * 0.01) * 100;
+
+                  return customMin;
+                },
+                beginAtZero: false
+              }
+    }
+          }
         };
 
         // render init block
@@ -102,76 +176,239 @@
         FAMRankingconfig,
         );
 
+        const FAMRanksData = {
+          labels: ['2022', '2023'],
+          datasets: [
+            {
+              label: 'd i r t y',
+              data: FAMRankingDataPoints.dirtyRanks,
+              yAxisID: 'y',
+              tension: 0.1,
+              borderColor: FAMRankingDataPoints.FAMcolors[0],
+            },
+            {
+              label: 'eXcellence',
+              data: FAMRankingDataPoints.eXcellenceRanks,
+              yAxisID: 'y1',
+              tension: 0.1,
+              borderColor: FAMRankingDataPoints.FAMcolors[1],
+            },
+            {
+              label: 'H.A.M.',
+              data: FAMRankingDataPoints.HAMRanks,
+              yAxisID: 'y2',
+              tension: 0.1,
+              borderColor: FAMRankingDataPoints.FAMcolors[2],
+            },
+            {
+              label: '$wag',
+              data: FAMRankingDataPoints.$wagRanks,
+              yAxisID: 'y3',
+              tension: 0.1,
+              borderColor: FAMRankingDataPoints.FAMcolors[3],
+            }
+          ]
+        };
+
+        const FAMRanksConfig = {
+          type: 'line',
+          data: FAMRanksData,
+          options: {
+            responsive: true,
+            interaction: {
+              mode: 'index',
+              intersect: false,
+            },
+            stacked: false,
+            plugins: {
+              title: {
+                display: true,
+                text: 'FAM Ranking History',
+              }
+            },
+            animation: {
+              onComplete: () => {
+                delayed = true;
+              },
+              delay: (context) => {
+                let delay = 0;
+                if (context.type === "data" && context.mode === "default" && !delayed) {
+                  delay = context.dataIndex * 300 + context.datasetIndex * 100;
+                }
+                return delay;
+              },
+            },
+            legend: {
+              position: 'top',
+              labels: {
+                padding: 10 // Adjust the padding value as needed
+              }
+            },
+            scales: {
+              x: {
+                title: {
+                  display: true,
+                  text: 'Years'
+                }
+              },
+              y: {
+                type: 'linear',
+                display: true,
+                position: 'left',
+                reverse: true,
+                min: 1,
+                max: 4,
+                ticks: {
+                  stepSize: 1, // Set the desired increment value
+                },
+                padding: {
+                  top: 50,    // Adjust the top padding value
+                  bottom: 50, // Adjust the bottom padding value
+                },
+                title: {
+                  display: true,
+                  text: 'Rank'
+                }
+              },
+              y1: {
+                type: 'linear',
+                display: false,
+                position: 'left',
+                reverse: true,
+                min: 1,
+                max: 4,
+
+                // grid line settings
+                grid: {
+                  drawOnChartArea: false, // only want the grid lines for one axis to show up
+                },
+                
+              },
+              y2: {
+                type: 'linear',
+                display: false,
+                position: 'left',
+                reverse: true,
+                min: 1,
+                max: 4,
+
+                // grid line settings
+                grid: {
+                  drawOnChartArea: false, // only want the grid lines for one axis to show up
+                },
+                
+              },
+              y3: {
+                type: 'linear',
+                display: false,
+                position: 'left',
+                reverse: true,
+                min: 1,
+                max: 4,
+
+                // grid line settings
+                grid: {
+                  drawOnChartArea: false, // only want the grid lines for one axis to show up
+                },
+                
+              },
+            }
+          }
+        };
+
+        const FAMRanksChart = new Chart(
+          document.getElementById('FAMRanksChart'),
+          FAMRanksConfig,
+        );
+
         function createTable() {
-                console.log('triggered');
-                const chartBox = document.querySelector('.chartBox');
-                const tableDiv = document.createElement('DIV');
-                tableDiv.setAttribute('id', 'tableDiv');  
+          console.log('triggered');
+          const chartBox = document.querySelector('.chartBox');
+          const tableDiv = document.createElement('DIV');
+          tableDiv.setAttribute('id', 'tableDiv');  
 
-                const table = document.createElement('TABLE');
-                table.classList.add('chartjs-table');
+          const table = document.createElement('TABLE');
+          table.classList.add('chartjs-table');
 
-                const thead = table.createTHead();
-                thead.classList.add('chartjs-thead');
+          const thead = table.createTHead();
+          thead.classList.add('chartjs-thead');
 
-                thead.insertRow(0);
-                console.log(FAMRankingdata.labels);
+          const topRow = thead.insertRow(0); // Create the top row
 
-                for (let i = 0; i < FAMRankingdata.labels.length; i++) {
-                    thead.rows[0].insertCell(i).innerText = FAMRankingdata.labels[i];
-                    thead.rows[0].cells[i].style.color = FAMRankingdata.datasets[0].backgroundColor[i];
-                };
+          for (let i = 0; i < FAMRankingDataPoints.labels.length; i++) {
+            const cell = topRow.insertCell(i);
+            cell.innerText = FAMRankingDataPoints.labels[i];
+          }
 
-                thead.rows[0].insertCell(0).innerText = 'FAM';
+          // tbody
+          const tbody = table.createTBody();
+          tbody.classList.add('chartjs-body');
 
-                // tbody
-                const tbody = table.createTBody();
-                tbody.classList.add('chartjs-body');
+          FAMRankingDataPoints.FAMs.forEach((FAM, index) => {
+            const row = tbody.insertRow(index);
+            row.insertCell(0).innerText = FAMRankingDataPoints.ranks[index];
+            row.insertCell(1).innerText = FAM;
+            row.insertCell(2).innerText = FAMRankingDataPoints.FAMpoints[index];
+          });
 
-                console.log(FAMRankingdata.datasets)
-                FAMRankingdata.datasets.map((dataset, index) => {
-                    tbody.insertRow(index);
-
-                    for (let i = 0; i < FAMRankingdata.datasets[0].data.length; i++) {
-                        tbody.rows[index].insertCell(i).innerText = dataset.data[i];
-                    };
-                    tbody.rows[index].insertCell(0).innerText = dataset.label;
-                })
-
-                // append
-                chartBox.appendChild(tableDiv);
-                tableDiv.appendChild(table);
+          // append
+          chartBox.appendChild(tableDiv);
+          tableDiv.appendChild(table);
         }
 
         createTable();
     };
 
     async function getData() {
-        const labels = [];
+        const ranks = [];
         const FAMs = [];
-        const FAMPoints = [];
-        const response = await fetch('http://localhost:8080/POTTER_Ranking.csv');
+        const FAMpoints = [];
+        const FAMcolors = [];
+        const dirtyRanks = [];
+        const eXcellenceRanks = [];
+        const HAMRanks = [];
+        const $wagRanks = [];
+        const response = await fetch('http://localhost:8080/POTTERRanking.csv');
         const tabledata = await response.text();
 
         const table = tabledata.split('\n');
 
         table.forEach(row => {
             const column = row.split(',');
-            const FAM = column[0];
-            const points = column[1];
+            
+            const rank = column[0] !== undefined ? column[0] : '';
+            const FAM = column[1] !== undefined ? column[1] : '';
+            const points = column[2] !== undefined ? column[2] : '';
+            const color = (column[3] !== undefined ? column[3] : '').replace(/\|/g, ',').trim();
+            const dirtyRank = column[4] !== undefined ? column[4] : '';
+            const eXcellenceRank = column[5] !== undefined ? column[5] : '';
+            const HAMRank = column[6] !== undefined ? column[6] : '';
+            const $wagRank = column[7] !== undefined ? column[7] : '';
+
+            ranks.push(rank);
             FAMs.push(FAM);
-            FAMPoints.push(points);
+            FAMpoints.push(points);
+            FAMcolors.push(color);
+            dirtyRanks.push(dirtyRank);
+            eXcellenceRanks.push(eXcellenceRank);
+            HAMRanks.push(HAMRank);
+            $wagRanks.push($wagRank);
         });
 
-        labels.push(FAMs.slice(0, 1));
-        labels.push(FAMPoints.slice(0, 1));
-        
-        console.log(labels);
+        const labels = [];
 
-        FAMs.shift();
-        FAMPoints.shift();
+        labels.push(ranks.splice(0, 1));
+        labels.push(FAMs.splice(0, 1));
+        labels.push(FAMpoints.splice(0, 1));
 
-        return {labels, FAMs, FAMPoints};
+        FAMcolors.shift();
+        dirtyRanks.shift();
+        eXcellenceRanks.shift();
+        HAMRanks.shift();
+        $wagRanks.shift();
+
+        return {labels, ranks, FAMs, FAMpoints, FAMcolors,
+          dirtyRanks, eXcellenceRanks, HAMRanks, $wagRanks};
     }
 
     </script>
