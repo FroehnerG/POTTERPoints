@@ -3,22 +3,20 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>POTTER Point Rankings and Statistics</title>
+    <title>P.O.T.T.E.R. Point Rankings and Statistics</title>
     <style>
       * {
         margin: 0;
         padding: 0;
         font-family: sans-serif;
       }
-      .chartMenu {
-        width: 100vw;
-        height: 0px;
-        background: #1A1A1A;
-        color: rgb(136,120,195);
+      body {
+        background-color: lightblue;
       }
-      .chartMenu p {
-        padding: 10px;
-        font-size: 20px;
+      .chart-title {
+        position: relative;
+        top: 40px;  /* Adjust the value to move the title down */
+        color: white;
       }
       .chartCard {
         width: 100vw;
@@ -29,14 +27,14 @@
         justify-content: center;
       }
       .chartBox {
-        width: 450px;
+        width: 500px;
         padding: 20px;
-        border-radius: 20px;
-        border: solid 2px rgb(136,120,195);
+        border-radius: 10px;
+        border: solid 1px lightgrey;
         background: white;
       }
       .chartjs-table, th, td {
-        width: 450px;
+        width: 500px;
         margin-top: 20px;
         border-collapse: collapse;
         border: 1px solid black;
@@ -45,7 +43,7 @@
       }
 
       tbody tr:nth-child(2n-1) {
-        background-color: rgb(245, 245, 245);
+        background-color: rgb(250, 250, 250);
         transition: all .125s ease-in-out;
       }
 
@@ -56,6 +54,16 @@
       .chartjs-table thead tr:first-child {
         background: linear-gradient(to bottom, rgb(136,120,195), rgb(178, 167, 216));
         color: white;
+      }
+
+      .chart-container .chart-legend ul {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .chart-container .chart-legend ul li span {
+        display: none;
       }
 
       .chartjs-thead {
@@ -75,10 +83,12 @@
   <body>
     <div class="chartMenu">
     </div>
-    <h1>POTTER Point Rankings and Statistics</h1>
+    <h1 class="chart-title">POTTER Point Rankings and Statistics</h1>
     <div class="chartCard">
       <div class="chartBox" style="position: relative; bottom: 50px; right: 30px;">
-        <canvas id="FAMRankingChart"></canvas>
+        <div class="chart-container">
+          <canvas id="FAMRankingChart"></canvas>
+        </div>
       </div>
       <div class="chartBox" style="position: relative; bottom: 160px; left: 30px;">
         <canvas id="FAMRanksChart"></canvas>
@@ -102,7 +112,7 @@
                 backgroundColor: FAMRankingDataPoints.FAMcolors,
                 borderWidth: 1
                 }, {
-                label: 'POTTER Points',
+                label: 'P.O.T.T.E.R. Points',
                 data: FAMRankingDataPoints.FAMpoints,
                 backgroundColor: FAMRankingDataPoints.FAMcolors,
                 borderWidth: 1
@@ -127,7 +137,6 @@
           data: {
             labels: FAMRankingDataPoints.FAMs,
             datasets: [{
-              label: 'POTTER Points',
               data: FAMRankingDataPoints.FAMpoints,
               backgroundColor: gradientColors
           }]
@@ -136,7 +145,10 @@
             plugins: {
               title: {
                 display: true,
-                text: 'Current P.O.T.T.E.R. Standing (March 2023)',
+                text: 'Current P.O.T.T.E.R. Standings (March 2023)'
+              },
+              legend: {
+                display: false // Show the legend
               }
             },
             animation: {
@@ -152,6 +164,12 @@
               },
             },
             scales: {
+              x: {
+                title: {
+                  display: true,
+                  text: 'FAM'
+                }
+              },
               y: {
                 min: function(context) {
                   // Calculate the minimum value dynamically
@@ -163,6 +181,10 @@
                   customMin = Math.round(customMin * 0.01) * 100;
 
                   return customMin;
+                },
+                title: {
+                  display: true,
+                  text: 'P.O.T.T.E.R. Points'
                 },
                 beginAtZero: false
               }
@@ -184,28 +206,28 @@
               data: FAMRankingDataPoints.dirtyRanks,
               yAxisID: 'y',
               tension: 0.1,
-              borderColor: FAMRankingDataPoints.FAMcolors[0],
+              borderColor: gradientColors[0],
             },
             {
               label: 'eXcellence',
               data: FAMRankingDataPoints.eXcellenceRanks,
               yAxisID: 'y1',
               tension: 0.1,
-              borderColor: FAMRankingDataPoints.FAMcolors[1],
+              borderColor: gradientColors[1],
             },
             {
               label: 'H.A.M.',
               data: FAMRankingDataPoints.HAMRanks,
               yAxisID: 'y2',
               tension: 0.1,
-              borderColor: FAMRankingDataPoints.FAMcolors[2],
+              borderColor: gradientColors[2],
             },
             {
               label: '$wag',
               data: FAMRankingDataPoints.$wagRanks,
               yAxisID: 'y3',
               tension: 0.1,
-              borderColor: FAMRankingDataPoints.FAMcolors[3],
+              borderColor: gradientColors[3],
             }
           ]
         };
@@ -214,6 +236,7 @@
           type: 'line',
           data: FAMRanksData,
           options: {
+            clip: false,
             responsive: true,
             interaction: {
               mode: 'index',
@@ -248,7 +271,7 @@
               x: {
                 title: {
                   display: true,
-                  text: 'Years'
+                  text: 'Year'
                 }
               },
               y: {
